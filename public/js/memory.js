@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => { // הוסף את זה
 
     if (backToHomeButton) {
         backToHomeButton.addEventListener('click', () => {
-            window.location.href = '../main.html'; // חזרה לדף הבית שלך
+            window.location.href = '../'; // חזרה לדף הבית שלך
             // hideGameOverModal(); // אם תהיה לך פונקציה כזו
         });
     }
