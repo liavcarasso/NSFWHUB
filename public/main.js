@@ -53,14 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // טיפול בלחיצה על כפתורי המשחקים
     gameButtons.forEach(button => {
         button.addEventListener('click', (event) => {
-            const gameUrl = event.target.dataset.gameUrl;
-            if (gameUrl) {
-                window.location.href = gameUrl;
+            const gameType = event.target.dataset.gameType; // נשתמש ב-data-game-type
+            if (gameType) {
+                // מפנים לדף בחירת סשנים, ומעבירים את gameType כפרמטר ב-URL
+                window.location.href = `session-selection.html?game=${gameType}`;
             }
         });
     });
 
-    // טיפול בלחיצה על כפתור "Change Name"
     if (changeNameButton) {
         changeNameButton.addEventListener('click', () => {
             showWelcomeScreen();

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Session</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="gameTitle"></h1>
+        <p id="playerGreeting"></p>
+
+        <h2>Available Sessions</h2>
+        <div id="sessionsList" class="session-list">
+            <p>Loading sessions...</p>
+        </div>
+
+        <button id="createSessionButton">Create New Session</button>
+        <button id="backToGameSelectionButton">Back to Game Selection</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/session-selection.js"></script>
+</body>
+</html>

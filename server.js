@@ -4,98 +4,283 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
+// השתמש ב-main.html כקובץ הראשי כברירת מחדל
 app.use(express.static('public', { index: 'main.html' }));
 
-let game = {
-  board: [],
-  players: [],
-  points: [],
-  turn: 0,
-  matched: [],
-  flipped: []
-};
+const PORT = process.env.PORT || 3000;
 
-function generateBoard() {
-  const emojis = ['🐶','🍕','🚗','🎈','🐱','🌈','⚽','🎮'];
-  return [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+// *** ניהול סשנים גלובלי ***
+const activeSessions = {}; // אובייקט שיחזיק את כל הסשנים הפעילים
+const playersData = {}; // אובייקט שיחזיק את שם השחקן לפי socket.id
+
+// פונקציית עזר ליצירת מצב משחק חדש (לכל סשן)
+function createNewGameSessionState(gameType) {
+    // ניתן להוסיף כאן לוגיקה שונה לכל סוג משחק
+    if (gameType === 'memory') {
+        const emojis = ['🐶','🍕','🚗','🎈','🐱','🌈','⚽','🎮'];
+        const board = [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+        return {
+            gameType: 'memory',
+            board: board,
+            players: {}, // שחקנים בסשן ספציפי (key: socketId, value: {name, score})
+            turn: null, // מי תורו, כ-socketId
+            matched: [],
+            flipped: [],
+            maxPlayers: 2, // לדוגמה, הגבל ל-2 שחקנים למשחק זיכרון
+            status: 'waiting' // waiting, in_progress, ended
+        };
+    }
+    // ניתן להוסיף כאן else if עבור משחקים אחרים
+    return null; // סוג משחק לא נתמך
 }
 
 io.on('connection', socket => {
-  console.log('Player connected:', socket.id);
-  game.players.push(socket.id);
-  game.points.push(0);
+    console.log('Player connected:', socket.id);
+    playersData[socket.id] = { name: `Guest_${socket.id.substring(0,4)}`, score: 0, currentSessionId: null };
 
-  // Create board if it's the first player
-  if (game.board.length === 0) {
-    game.board = generateBoard();
-  }
+    // קבל את שם השחקן מהקליינט
+    socket.on('setPlayerName', (data) => {
+        if (data.name && playersData[socket.id]) {
+            playersData[socket.id].name = data.name;
+            console.log(`Player ${socket.id} set name to: ${data.name}`);
+        }
+    });
 
-  socket.emit('init', {
-    board: game.board,
-    matched: game.matched,
-    turn: game.turn,
-    yourId: socket.id,
-    players: game.players
-  });
+    // *** ניהול סשנים מהקליינט ***
 
-  socket.broadcast.emit('playerJoined', game.players);
+    // קליינט מבקש רשימת סשנים פתוחים
+    socket.on('requestPublicSessions', (data) => {
+        const publicSessions = {};
+        for (const id in activeSessions) {
+            const session = activeSessions[id];
+            // רק סשנים שעדיין לא התחילו
+            if (session.status === 'waiting' && session.gameType === data.gameType) {
+                 publicSessions[id] = {
+                     gameType: session.gameType,
+                     players: session.players,
+                     maxPlayers: session.maxPlayers
+                 };
+            }
+        }
+        socket.emit('publicSessions', publicSessions);
+    });
 
-  socket.on('flip', index => {
-    if (socket.id !== game.players[game.turn]) return;
-    if (game.flipped.includes(index) || game.matched.includes(index)) return;
-    if (game.flipped.length >= 2) return;
+    // קליינט מבקש ליצור סשן חדש
+    socket.on('createSession', (data) => {
+        const { gameType, sessionName } = data;
+        const sessionId = `session-${Math.random().toString(36).substring(2, 9)}`; // ID ייחודי לסשן
 
-    game.flipped.push(index);
-    io.emit('flip', index);
+        const newGameState = createNewGameSessionState(gameType);
+        if (!newGameState) {
+            socket.emit('error', 'Invalid game type.');
+            return;
+        }
 
-    if (game.flipped.length === 2) {
-      const [i1, i2] = game.flipped;
-      const e1 = game.board[i1];
-      const e2 = game.board[i2];
+        activeSessions[sessionId] = newGameState;
+        console.log(`Session ${sessionId} created for ${gameType} by ${playersData[socket.id].name}`);
 
-      if (e1 === e2) {
-        game.matched.push(i1, i2);
-        game.points[game.turn] += 1;
-        io.emit('match', [i1, i2]);
+        // הצטרף אוטומטית ליוצר הסשן
+        joinPlayerToSession(socket, sessionId, gameType);
+        // עדכן את כל הקליינטים (במיוחד אלו בדף בחירת הסשנים)
+        io.emit('publicSessions', getPublicSessions(gameType)); // שלח רשימה מעודכנת
+    });
 
-        if (game.matched.length === game.board.length) {
-          let winnerIndex = 0;
-          if (game.points.length > 1) {
-            for (let i = 1; i < game.points.length; i++){
-                if (game.points[i] > game.points[winnerIndex]) {
-                  winnerIndex = i;
-                } else if (game.points[i] === game.points[winnerIndex] && i !== winnerIndex) {
-                    // tie . need to code...
+    // קליינט מבקש להצטרף לסשן קיים
+    socket.on('joinSession', (data) => {
+        const { sessionId } = data;
+        const session = activeSessions[sessionId];
+
+        if (!session) {
+            socket.emit('error', 'Session not found.');
+            return;
+        }
+        if (Object.keys(session.players).length >= session.maxPlayers) {
+            socket.emit('error', 'Session is full.');
+            return;
+        }
+        if (session.status !== 'waiting') {
+             socket.emit('error', 'Session already in progress.');
+             return;
+        }
+
+        joinPlayerToSession(socket, sessionId, session.gameType);
+        io.emit('publicSessions', getPublicSessions(session.gameType)); // עדכן את כל הקליינטים
+
+        // אם הסשן מלא, התחל את המשחק
+        if (Object.keys(session.players).length === session.maxPlayers) {
+            session.status = 'in_progress';
+            session.turn = Object.keys(session.players)[0]; // השחקן הראשון בתור
+            // שלח הודעת התחלה לכל השחקנים בסשן
+            for (const playerId in session.players) {
+                io.to(playerId).emit('gameStart', session);
+            }
+        }
+    });
+
+    // פונקציית עזר לצירוף שחקן לסשן
+    function joinPlayerToSession(socket, sessionId, gameType) {
+        // אם השחקן כבר בסשן כלשהו, צא ממנו קודם
+        if (playersData[socket.id] && playersData[socket.id].currentSessionId) {
+            leavePlayerFromSession(socket);
+        }
+
+        activeSessions[sessionId].players[socket.id] = {
+            name: playersData[socket.id].name,
+            score: 0
+        };
+        playersData[socket.id].currentSessionId = sessionId; // עדכן את השחקן באיזה סשן הוא
+        socket.join(sessionId); // צרף את הסוקט ל"חדר" של הסשן
+
+        console.log(`Player ${playersData[socket.id].name} joined session ${sessionId} (${gameType})`);
+        socket.emit('sessionJoined', { sessionId: sessionId, gameType: gameType }); // אשר לקליינט
+        io.to(sessionId).emit('playerJoinedSession', activeSessions[sessionId].players); // עדכן שחקנים אחרים בסשן
+
+        // אם יש רק שחקן אחד, הגדר אותו כתור הראשון
+        if (Object.keys(activeSessions[sessionId].players).length === 1) {
+            activeSessions[sessionId].turn = socket.id;
+        }
+    }
+
+    // פונקציית עזר לעזיבת סשן
+    function leavePlayerFromSession(socket) {
+        const currentSessionId = playersData[socket.id].currentSessionId;
+        if (currentSessionId && activeSessions[currentSessionId]) {
+            delete activeSessions[currentSessionId].players[socket.id];
+            socket.leave(currentSessionId);
+            console.log(`Player ${playersData[socket.id].name} left session ${currentSessionId}`);
+
+            // אם הסשן התרוקן, מחק אותו
+            if (Object.keys(activeSessions[currentSessionId].players).length === 0) {
+                delete activeSessions[currentSessionId];
+                console.log(`Session ${currentSessionId} deleted as it's empty.`);
+            } else {
+                 io.to(currentSessionId).emit('playerLeftSession', activeSessions[currentSessionId].players);
+                 // אם מי שעזב היה בתור, העבר תור לשחקן הבא
+                 if (activeSessions[currentSessionId].turn === socket.id) {
+                     const remainingPlayers = Object.keys(activeSessions[currentSessionId].players);
+                     if (remainingPlayers.length > 0) {
+                        activeSessions[currentSessionId].turn = remainingPlayers[0]; // העבר לראשון ברשימה
+                        io.to(currentSessionId).emit('nextTurn', activeSessions[currentSessionId].turn);
+                     } else {
+                        activeSessions[currentSessionId].turn = null;
+                     }
+                 }
+            }
+            playersData[socket.id].currentSessionId = null; // נקה את פרטי הסשן של השחקן
+            io.emit('publicSessions', getPublicSessions()); // עדכן את כל הקליינטים ברשימת הסשנים
+        }
+    }
+
+    function getPublicSessions(gameTypeFilter = null) {
+        const publicSessions = {};
+        for (const id in activeSessions) {
+            const session = activeSessions[id];
+            if (session.status === 'waiting' && (!gameTypeFilter || session.gameType === gameTypeFilter)) {
+                 publicSessions[id] = {
+                     gameType: session.gameType,
+                     players: session.players,
+                     maxPlayers: session.maxPlayers
+                 };
+            }
+        }
+        return publicSessions;
+    }
+
+
+    // *** לוגיקת המשחק עצמה (מועברת לסשן ספציפי) ***
+    socket.on('flip', index => {
+        const currentSessionId = playersData[socket.id].currentSessionId;
+        if (!currentSessionId || !activeSessions[currentSessionId]) return;
+
+        const session = activeSessions[currentSessionId];
+
+        if (socket.id !== session.turn) return;
+        if (session.flipped.includes(index) || session.matched.includes(index)) return;
+        if (session.flipped.length >= 2) return;
+
+        session.flipped.push(index);
+        io.to(currentSessionId).emit('flip', index); // שלח רק לשחקני הסשן
+
+        if (session.flipped.length === 2) {
+            const [i1, i2] = session.flipped;
+            const e1 = session.board[i1];
+            const e2 = session.board[i2];
+
+            if (e1 === e2) {
+                session.matched.push(i1, i2);
+                session.players[socket.id].score = (session.players[socket.id].score || 0) + 1; // עדכן ניקוד לשחקן הנוכחי
+                io.to(currentSessionId).emit('match', [i1, i2]);
+                io.to(currentSessionId).emit('updatePlayersInSession', session.players); // עדכן ניקוד לשחקנים בסשן
+
+                if (session.matched.length === session.board.length) {
+                    console.log(`Game Over for session ${currentSessionId}!`);
+                    session.status = 'ended';
+                    let winnerId = null;
+                    let maxScore = -1;
+                    let isTie = false;
+
+                    for (const playerId in session.players) {
+                        const playerScore = session.players[playerId].score;
+                        if (playerScore > maxScore) {
+                            maxScore = playerScore;
+                            winnerId = playerId;
+                            isTie = false;
+                        } else if (playerScore === maxScore) {
+                            isTie = true; // יש תיקו
+                        }
+                    }
+
+                    let winnerName = null;
+                    if (winnerId && !isTie) {
+                         winnerName = session.players[winnerId].name;
+                    } else if (isTie) {
+                        winnerName = "It's a Tie!";
+                        winnerId = null; // כדי לציין שאין מנצח יחיד
+                    } else {
+                        winnerName = "No winner (game ended unexpectedly)";
+                    }
+
+                    io.to(currentSessionId).emit('endmemory', { winnerId: winnerId, winnerName: winnerName });
+
+                    // אופציונלי: מחק את הסשן לאחר שהמשחק נגמר וחלון הניצחון הוצג (או לאחר זמן מה)
+                    // setTimeout(() => {
+                    //     delete activeSessions[currentSessionId];
+                    //     io.emit('publicSessions', getPublicSessions()); // עדכן את כולם שהסשן נמחק
+                    // }, 10000); // מחק לאחר 10 שניות
                 }
             }
-          }
-          let winnerId = game.players[winnerIndex];
-          io.emit('endmemory', { winnerId: winnerId, winnerName: "other player" });
-          console.log("game ended")
-          game = { board: [], players: [], points: [], turn: 0, matched: [], flipped: [] };
+
+            setTimeout(() => {
+                // העברת תור
+                const playerIds = Object.keys(session.players);
+                if (playerIds.length > 0 && session.status === 'in_progress') {
+                    const currentIndex = playerIds.indexOf(session.turn);
+                    session.turn = playerIds[(currentIndex + 1) % playerIds.length];
+                    io.to(currentSessionId).emit('nextTurn', session.turn);
+                }
+
+                session.flipped = [];
+                io.to(currentSessionId).emit('unflip');
+            }, 1000);
         }
-      }
+    });
 
-      setTimeout(() => {
-        game.turn = (game.turn + 1) % game.players.length;
-        console.log(game.turn)
-        game.flipped = [];
-        io.emit('unflip');
-        io.emit('nextTurn', game.turn);
-      }, 1000);
-    }
-  });
+    socket.on('disconnect', () => {
+        console.log('Player disconnected:', socket.id);
+        const disconnectedPlayerName = playersData[socket.id] ? playersData[socket.id].name : socket.id;
 
-  socket.on('disconnect', () => {
-    console.log('Player disconnected:', socket.id);
-    game.players = game.players.filter(id => id !== socket.id);
-    if (game.players.length === 0) {
-       game = { board: [], players: [], points: [], turn: 0, matched: [], flipped: [] };
-    }
-  });
+        // הסר את השחקן מהסשן הנוכחי שלו
+        leavePlayerFromSession(socket);
+
+        // מחק את נתוני השחקן הגלובליים
+        delete playersData[socket.id];
+        console.log(`Player ${disconnectedPlayerName} data removed.`);
+
+        // עדכן את כולם ברשימת הסשנים הפתוחים
+        io.emit('publicSessions', getPublicSessions());
+    });
 });
 
-const PORT = process.env.PORT || 3000; // Use the provided PORT or default to 3000
 http.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
