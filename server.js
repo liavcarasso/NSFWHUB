@@ -95,6 +95,7 @@ io.on('connection', socket => {
   });
 });
 
-http.listen(3000, () => {
-  console.log('Server running at http://localhost:3000');
+const PORT = process.env.PORT || 3000; // Use the provided PORT or default to 3000
+http.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
