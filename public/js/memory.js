@@ -1,7 +1,7 @@
 // public/js/memory.js
 
 document.addEventListener('DOMContentLoaded', () => { // הוסף את זה
-    const socket = io('https://nsfwhub-ktdb.onrender.com');
+    const socket = io();
     const board = document.getElementById('game-board');
     let myId = null;
     let players = [];
