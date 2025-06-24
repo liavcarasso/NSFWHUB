@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Memory Game</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <h1>🧠 Emoji Memory Game</h1>
+  <div id="game-board"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="../js/memory.js"></script>
+  <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+          <h2>GAME IS OVER!</h2>
+          <p id="winnerMessage"></p>
+          <button id="restartButton">PLAY AGAIN</button>
+          <button id="backToHomeButton">BACK TO THE HOME SCREEN</button>
+      </div>
+  </div>
+</body>
+</html>

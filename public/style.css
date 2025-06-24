@@ -1,0 +1,221 @@
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  grid-gap: 10px;
+  justify-content: center;
+}
+
+.card {
+  background-color: #eee;
+  font-size: 2rem;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    text-align: center;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 400px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+#nameForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#playerName {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#playerName:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.modal {
+    display: none; /* וודא שזה מוסתר לחלוטין כברירת מחדל */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+    /* הסר את display: flex; מכאן - הוא יתווסף דינמית ב-JS */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex; /* הצג את המודאל רק כשהקלאס 'show' קיים */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    transform: translateY(-50px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.modal h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.modal p {
+    color: #555;
+    font-size: 1.2em;
+    margin-bottom: 25px;
+}
+
+.modal button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.modal button:hover {
+    background-color: #0056b3;
+}
+
+#backToHomeButton {
+    background-color: #6c757d; /* צבע אפור שונה */
+}
+
+#backToHomeButton:hover {
+    background-color: #5a6268;
+}
+
+.game-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* יציג כרטיסים בגודל אחיד */
+    gap: 20px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.game-item {
+    background-color: #e9ecef;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.game-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.game-item h3 {
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.game-item p {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+}
+
+.game-item .play-game-button {
+    background-color: #28a745; /* צבע ירוק לכפתור Play */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    width: 100%; /* כפתור ברוחב מלא של הכרטיס */
+}
+
+.game-item .play-game-button:hover {
+    background-color: #218838;
+}
+
+#changeNameButton {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#changeNameButton:hover {
+    background-color: #5a6268;
+}
