@@ -7,6 +7,7 @@ const io = require('socket.io')(http);
 app.use(express.static('public', { index: 'main.html' }));
 
 const PORT = process.env.PORT || 3000;
+
 console.log('PORT from env:', process.env.PORT);
 
 // 🧠 כל הסשנים הפעילים
