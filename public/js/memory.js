@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let matched = [];
   let lockBoard = false;
 
+  const readyButton = document.createElement('button');
+  readyButton.id = 'ready-button';
+  readyButton.innerText = 'im ready!';
+  readyButton.style.display = 'none';
+  document.body.appendChild(readyButton);
+
   if (!sessionId) {
     alert('Missing session ID. Returning to home.');
     window.location.href = '../main.html';
@@ -19,11 +25,23 @@ document.addEventListener('DOMContentLoaded', () => {
   socket.emit('joinSession', { sessionId });
 
   socket.on('sessionJoined', (data) => {
-    console.log('✅ Joined session:', data.sessionId);
-    myId = socket.id;
+        console.log('✅ Joined session:', data.sessionId);
+        myId = socket.id;
+        readyButton.style.display = 'block';
+  });
+
+  readyButton.addEventListener('click', () => {
+      socket.emit('playerReady');
+      readyButton.style.backgroundColor = 'gray';
+      readyButton.style.cursor = 'not-allowed';
+      console.log('sent ready to server');
   });
 
   socket.on('gameStart', (sessionState) => {
+    console.log('🎉 Game is starting!');
+    if (readyButton.style.display !== 'none') {
+        readyButton.style.display = 'none';
+    }
     matched = sessionState.matched;
     renderBoard(sessionState.board);
     myTurn = (sessionState.turn === socket.id);

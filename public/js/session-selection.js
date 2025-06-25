@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionsListElement.addEventListener('click', (e) => {
         if (e.target.classList.contains('join-session-button')) {
             const sessionId = e.target.dataset.id;
-            socket.emit('joinSession', { sessionId });
+            socket.emit('joinSession', { sessionId, gameType});
         }
     });
 

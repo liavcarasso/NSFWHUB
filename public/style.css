@@ -288,3 +288,58 @@ button[type="submit"]:hover {
 .card.matched {
     background-color: #e0ffe0; /* Light green for matched cards */
 }
+
+#rps-board {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, 150px);;
+    grid-gap: 25px;
+    margin-left: auto;
+    margin-right: 0;
+}
+.card_rps {
+  background-color: #eee;
+  font-size: 6rem;
+  width: 250px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#ready-button {
+    /* מיקום הכפתור בתחתית ובמרכז */
+    position: absolute; /* מיקום אבסולוטי ביחס לאבא עם position: relative (ה-body במקרה זה) */
+    bottom: 20px; /* 20 פיקסלים מהתחתית */
+    left: 50%; /* 50% משמאל */
+    transform: translateX(-50%); /* מזיז את הכפתור חזרה בחצי מרוחבו למרכוז מדויק */
+    z-index: 1000; /* ודא שהכפתור נמצא מעל אלמנטים אחרים */
+
+    /* עיצוב ויזואלי */
+    padding: 15px 30px; /* ריפוד פנימי */
+    font-size: 20px; /* גודל טקסט */
+    font-weight: bold; /* עובי טקסט */
+    color: white; /* צבע טקסט לבן */
+    background-color: #4CAF50; /* ירוק יפה */
+    border: none; /* ללא מסגרת */
+    border-radius: 8px; /* פינות מעוגלות */
+    cursor: pointer; /* סמן עכבר כ-pointer בלחיצה */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* אנימציה חלקה למעבר צבע ושינוי גודל */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* צל עדין */
+}
+
+/* אפקט ריחוף (Hover effect) */
+#ready-button:hover:not(:disabled) {
+    background-color: #45a049; /* ירוק כהה יותר בריחוף */
+    transform: translateX(-50%) scale(1.05); /* הגדלה קלה בריחוף */
+}
+
+/* עיצוב כפתור במצב לא פעיל (disabled) */
+#ready-button:disabled {
+    background-color: gray !important; /* צבע אפור קבוע למצב לא פעיל */
+    cursor: not-allowed !important; /* סמן עכבר "לא מורשה" */
+    transform: translateX(-50%) scale(1); /* ביטול הגדלה במצב לא פעיל */
+    opacity: 0.7; /* עמעום קל */
+    box-shadow: none; /* הסרת צל */
+}

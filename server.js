@@ -22,33 +22,61 @@ io.on('connection', socket => {
     console.log(`✅ Socket connected: ${socket.id}`);
 
     socket.on('createSession', ({ gameType }) => {
+        console.log("game type:" + gameType)
         const sessionId = `session-${Math.random().toString(36).substring(2, 9)}`;
 
-        if (gameType !== 'memory') return;
+        if (gameType === 'memory') {
 
-        activeSessions[sessionId] = {
-            gameType,
-            board: createMemoryBoard(),
-            players: {},
-            turn: null,
-            matched: [],
-            flipped: [],
-            maxPlayers: 2,
-            status: 'waiting'
-        };
+            activeSessions[sessionId] = {
+                gameType,
+                board: createMemoryBoard(),
+                players: {},
+                turn: null,
+                matched: [],
+                flipped: [],
+                maxPlayers: 2,
+                status: 'waiting',
+                readyPlayers: new Set()
+            };
+        }
+        else if (gameType === 'rps'){
+            activeSessions[sessionId] = {
+                gameType,
+                players: {},
+                maxPlayers: 2,
+                choose: {},
+                status: 'waiting',
+                readyPlayers: new Set()
+            };
+        }
 
         joinSession(socket, sessionId);
     });
 
-    socket.on('joinSession', ({ sessionId }) => {
+    socket.on('joinSession', ({ sessionId}) => {
+        const session = activeSessions[sessionId];
         if (!activeSessions[sessionId]) return;
         joinSession(socket, sessionId);
 
+    });
+
+    socket.on('playerReady', () => {
+        const sessionId = socket.sessionId;
         const session = activeSessions[sessionId];
-        if (Object.keys(session.players).length === session.maxPlayers) {
+
+        if (!session) return;
+
+        session.readyPlayers.add(socket.id); // Add the player to the ready set
+        console.log(`Player ${socket.id} is ready in session ${sessionId}. Ready players: ${session.readyPlayers.size}/${session.maxPlayers}`);
+
+        // Check if all players are ready
+        if (session.readyPlayers.size === session.maxPlayers && session.status === 'waiting') {
             session.status = 'in_progress';
-            session.turn = Object.keys(session.players)[0];
+            if (session.gameType === "memory"){
+                session.turn = Object.keys(session.players)[0];
+            }
             io.to(sessionId).emit('gameStart', session);
+            console.log(`Game started in session ${sessionId}!`);
         }
     });
 
@@ -90,6 +118,36 @@ io.on('connection', socket => {
                 io.to(sessionId).emit('unflip');
                 io.to(sessionId).emit('nextTurn', session.turn);
             }, 1000);
+        }
+    });
+
+    socket.on('rpsClick', (index, playerId) => {
+        const sessionId = socket.sessionId;
+        const session = activeSessions[sessionId];
+        if (!session) return;
+
+        if (Object.keys(session.choose).length >= 2) return;
+
+        session.choose[playerId] = index;
+
+        if (Object.keys(session.choose).length === 2) {
+            let winner;
+            const [[i1key, i1], [i2key, i2]] = Object.entries(session.choose);
+
+             if (
+                (i1 === 0 && i2 === 2) || // Rock (0) beats Scissors (2)
+                (i1 === 1 && i2 === 0) || // Paper (1) beats Rock (0)
+                (i1 === 2 && i2 === 1)    // Scissors (2) beats Paper (1)
+            ) {
+                 winner = i1key;
+             }
+            else if (i1 === i2){
+                winner = null;
+             }
+            else {
+                winner = i2key;
+             }
+            io.to(sessionId).emit('endrps', { winnerId: winner });
         }
     });
 
