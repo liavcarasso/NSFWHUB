@@ -51,6 +51,7 @@ io.on('connection', socket => {
     });
 
     socket.on('flip', index => {
+        let turn = true;
         const sessionId = socket.sessionId;
         const session = activeSessions[sessionId];
         if (!session || session.turn !== socket.id) return;
@@ -67,6 +68,7 @@ io.on('connection', socket => {
             const e2 = session.board[i2];
 
             if (e1 === e2) {
+                turn = false;
                 session.matched.push(i1, i2);
                 io.to(sessionId).emit('match', [i1, i2]);
 
@@ -79,7 +81,9 @@ io.on('connection', socket => {
             setTimeout(() => {
                 const ids = Object.keys(session.players);
                 const current = ids.indexOf(session.turn);
-                session.turn = ids[(current + 1) % ids.length];
+                if (turn){
+                    session.turn = ids[(current + 1) % ids.length];
+                }
                 session.flipped = [];
                 io.to(sessionId).emit('unflip');
                 io.to(sessionId).emit('nextTurn', session.turn);
