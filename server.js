@@ -18,6 +18,22 @@ function createMemoryBoard() {
     return [...emojis, ...emojis].sort(() => 0.5 - Math.random());
 }
 
+const xoEmoji = [
+        '❌',
+        '⭕'
+]
+function randomRolesXo(players){
+    const [p1, p2] = Object.keys(players);
+    let roles = {
+        [p1] : "",
+        [p2] : ""
+    }
+    xoEmoji.sort(() => Math.random() - 0.5);
+    roles[p1] = xoEmoji[0];
+    roles[p2] = xoEmoji[1];
+    return roles;
+}
+
 io.on('connection', socket => {
     console.log(`✅ Socket connected: ${socket.id}`);
 
@@ -26,7 +42,6 @@ io.on('connection', socket => {
         const sessionId = `session-${Math.random().toString(36).substring(2, 9)}`;
 
         if (gameType === 'memory') {
-
             activeSessions[sessionId] = {
                 gameType,
                 board: createMemoryBoard(),
@@ -49,6 +64,23 @@ io.on('connection', socket => {
                 readyPlayers: new Set()
             };
         }
+        if (gameType === 'xo') {
+            activeSessions[sessionId] = {
+                gameType,
+                board: [
+                    '','','',
+                    '','','',
+                    '','',''
+                ],
+                players: {},
+                turn: null,
+                maxPlayers: 2,
+                status: 'waiting',
+                placed: {},
+                roles: {},
+                readyPlayers: new Set()
+            };
+        }
 
         joinSession(socket, sessionId);
     });
@@ -57,7 +89,6 @@ io.on('connection', socket => {
         const session = activeSessions[sessionId];
         if (!activeSessions[sessionId]) return;
         joinSession(socket, sessionId);
-
     });
 
     socket.on('playerReady', () => {
@@ -74,6 +105,15 @@ io.on('connection', socket => {
             session.status = 'in_progress';
             if (session.gameType === "memory"){
                 session.turn = Object.keys(session.players)[0];
+            }
+            if (session.gameType === "xo"){
+                session.roles = randomRolesXo(session.players);
+                if (session.roles[Object.keys(session.players)[0]] === '❌'){
+                    session.turn = Object.keys(session.players)[0];
+                }
+                else {
+                    session.turn = Object.keys(session.players)[1];
+                }
             }
             io.to(sessionId).emit('gameStart', session);
             console.log(`Game started in session ${sessionId}!`);
@@ -148,6 +188,77 @@ io.on('connection', socket => {
                 winner = i2key;
              }
             io.to(sessionId).emit('endrps', { winnerId: winner });
+        }
+    });
+
+    socket.on('clickCardXo', (index, playerId) => {
+        const sessionId = socket.sessionId;
+        const session = activeSessions[sessionId];
+        if (!session) return;
+
+        console.log(`player:${playerId} press ${index} in session:${sessionId}`)
+
+        const winningCombinations = [
+            [0, 1, 2], // שורה עליונה
+            [3, 4, 5], // שורה אמצעית
+            [6, 7, 8], // שורה תחתונה
+            [0, 3, 6], // עמודה שמאלית
+            [1, 4, 7], // עמודה אמצעית
+            [2, 5, 8], // עמודה ימנית
+            [0, 4, 8], // אלכסון משמאל למעלה לימין למטה
+            [2, 4, 6]  // אלכסון מימין למעלה לשמאל למטה
+        ];
+        let winnerFound = false;
+
+        //if (Object.keys(session.placed).length >= 2) return;
+        if (session.turn === playerId) {
+            if (session.placed.hasOwnProperty(playerId)) {
+                session.placed[playerId].push(index);
+            } else {
+                session.placed[playerId] = [index];
+            }
+
+            session.board[index] = session.roles[playerId];
+            io.to(sessionId).emit('xoRerender', index, session.roles[playerId]);
+
+            if (Object.keys(session.placed).length === 2) {
+                const allPlayerIds = Object.keys(session.placed);
+
+                for (const player in session.placed) {
+                    const playerMoves = session.placed[player];
+
+                    for (const combination of winningCombinations) {
+                        const hasWon = combination.every(index => playerMoves.includes(index));
+
+                        if (hasWon) {
+                            console.log("winner has been found")
+                            winnerFound = true;
+                            io.to(sessionId).emit('endXo', {winnerId: player});
+                        }
+                        if (winnerFound) {
+                            break;
+                        }
+                    }
+                }
+                if (!winnerFound) {
+                    if (allPlayerIds.length === 2) {
+                        const player1Moves = session.placed[allPlayerIds[0]] || [];
+                        const player2Moves = session.placed[allPlayerIds[1]] || [];
+                        const totalMoves = player1Moves.length + player2Moves.length;
+
+                        if (totalMoves === 9) {
+                            console.log("tie")
+                            io.to(sessionId).emit('endXo', {winnerId: null});
+                        }
+                    }
+                }
+            }
+            if (!winnerFound) {
+                const ids = Object.keys(session.players);
+                const current = ids.indexOf(session.turn);
+                session.turn = ids[(current + 1) % ids.length];
+                io.to(sessionId).emit('nextTurn', session.turn);
+            }
         }
     });
 

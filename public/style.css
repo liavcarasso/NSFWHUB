@@ -297,6 +297,7 @@ button[type="submit"]:hover {
     margin-left: auto;
     margin-right: 0;
 }
+
 .card_rps {
   background-color: #eee;
   font-size: 6rem;
@@ -342,4 +343,13 @@ button[type="submit"]:hover {
     transform: translateX(-50%) scale(1); /* ביטול הגדלה במצב לא פעיל */
     opacity: 0.7; /* עמעום קל */
     box-shadow: none; /* הסרת צל */
+}
+
+#xo-board {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    grid-template-rows: repeat(3, 150px);
+    grid-gap: 25px;
+    margin-left: auto;
+    margin-right: 0;
 }
