@@ -5,36 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WELCOME TO THE NSFW OFFICIAL GAME HUB</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div id="welcomeScreen">
-            <h1>WELCOME TO THE NSFW OFFICIAL GAME HUB!!</h1>
-            <p>Before you start to play please enter your name</p>
-            <form id="nameForm">
-                <input type="text" id="playerNameInput" placeholder="write your name here..." required>
-                <button type="submit">Start to play!</button>
-            </form>
-        </div>
+    <div id="welcomeScreen">
+        <h1>WELCOME TO THE NSFW OFFICIAL GAME HUB!!</h1>
+        <p>Before you start to play please enter your name</p>
+        <form id="nameForm">
+            <input type="text" id="playerNameInput" placeholder="write your name here..." required>
+            <button type="submit">Start to play!</button>
+        </form>
+    </div>
 
-        <div id="gameSelectionScreen" style="display: none;">
-            <h1 id="welcomePlayerText"></h1>
-            <h2>Choose your game:</h2>
-            <div class="game-list">
-                <div class="game-item">
-                    <h3>Memory Game 🧠</h3>
-                    <p>Test your memory with emojis!</p>
-                    <button class="play-game-button" data-game-type="memory">Play Memory</button>
-                    <h3>Rock Paper Scissors 👊✋✌️</h3>
-                    <p>Try to beat your friend in rock paper scissors!</p>
-                    <button class="play-game-button" data-game-type="rps">Play Rock paper scissors</button>
-                    <h3>Tic-Tac-Toe ❌️⭕</h3>
-                    <p>Try to beat your friend in Tic-Tac-Toe Game!</p>
-                    <button class="play-game-button" data-game-type="xo">Play Tic-Tac-Toe</button>
-                </div>
-                </div>
-            <button id="changeNameButton">Change Name</button>
+    <div id="gameSelectionScreen" style="display: none;">
+        <h1 id="welcomePlayerText"></h1>
+        <h2>Choose your game:</h2>
+        <div class="game-list">
+            <div class="game-item">
+                <h3>Memory Game 🧠</h3>
+                <p>Test your memory with emojis!</p>
+                <button class="play-game-button" data-game-type="memory">Play Memory</button>
+            </div>
+            <div class="game-item">
+                <h3>Rock Paper Scissors 👊✋✌️</h3>
+                <p>Try to beat your friend in rock paper scissors!</p>
+                <button class="play-game-button" data-game-type="rps">Play Rock paper scissors</button>
+            </div>
+            <div class="game-item">
+                <h3>Tic-Tac-Toe ❌️⭕</h3>
+                <p>Try to beat your friend in Tic-Tac-Toe Game!</p>
+                <button class="play-game-button" data-game-type="xo">Play Tic-Tac-Toe</button>
+            </div>
         </div>
+        <button id="changeNameButton">Change Name</button>
     </div>
 
     <script src="main.js"></script>

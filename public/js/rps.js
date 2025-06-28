@@ -3,6 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionId = urlParams.get('sessionId');
     const socket = io();
 
+    const modal = document.getElementById('endGameModal');
+    const modalResultText = document.getElementById('modalResultText');
+    const backToHomeButton = document.getElementById('backToHomeButton');
+
+    backToHomeButton.addEventListener('click', () => {
+        window.location.href = '../main.html';
+    });
+
+
     const board = document.getElementById('rps-board');
     const readyButton = document.createElement('button');
     readyButton.id = 'ready-button';
@@ -11,14 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(readyButton);
 
     const rpsemoji = [
-        '✊',
-        '✋',
-        '✌️'
+        '✊','✋','✌️'
     ]
     let lockBoard = false;
-
     let myId = null;
-
+    let choose = 0;
 
     if (!sessionId) {
         alert('Missing session ID. Returning to home.');
@@ -50,15 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('endrps', ({ winnerId }) => {
-        let msg
-        if (winnerId === socket.id)
-            msg = 'you won'
-        else if (winnerId === null)
-            msg = 'tie'
-        else
-            msg = 'you lost'
-        alert(msg);
-        window.location.href = '../main.html';
+        lockBoard = true;
+        let resultMessage = '';
+        if (winnerId === socket.id) {
+            resultMessage = '🎉 You Won! 🎉';
+        } else if (winnerId === null) {
+            resultMessage = '🤝 It\'s a Tie! 🤝';
+        } else {
+            resultMessage = '😢 You Lost 😢';
+        }
+        modalResultText.textContent = resultMessage;
+        modal.classList.add('show');
     });
 
     function renderBoard() {
@@ -73,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
           card_rps.addEventListener('click', () => {
             if (lockBoard) return;
             socket.emit('rpsClick', index , socket.id);
+            board.children[choose].style.backgroundColor = '#eee';
+            card_rps.style.backgroundColor = '#8e8c8c';
+            choose = index;
           });
 
           board.appendChild(card_rps);

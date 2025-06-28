@@ -10,6 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let matched = [];
   let lockBoard = false;
 
+  const modal = document.getElementById('endGameModal');
+  const modalResultText = document.getElementById('modalResultText');
+  const backToHomeButton = document.getElementById('backToHomeButton');
+
+  backToHomeButton.addEventListener('click', () => {
+    window.location.href = '../main.html';
+  });
+
   const readyButton = document.createElement('button');
   readyButton.id = 'ready-button';
   readyButton.innerText = 'im ready!';
@@ -73,9 +81,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.on('endmemory', ({ winnerId }) => {
-    const msg = winnerId === socket.id ? '🎉 You won!' : '😢 You lost.';
-    alert(msg);
-    window.location.href = '../main.html';
+    lockBoard = true;
+    let resultMessage = '';
+    if (winnerId === socket.id) {
+        resultMessage = '🎉 You Won! 🎉';
+    } else {
+        resultMessage = '😢 You Lost 😢';
+    }
+    modalResultText.textContent = resultMessage;
+    modal.classList.add('show');
   });
 
   function renderBoard(shuffled) {
@@ -97,6 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function highlightTurn(isMine) {
-    document.body.style.backgroundColor = isMine ? '#ddffdd' : '#ffdddd';
+    const status = document.getElementById('status');
+    if (isMine) {
+      document.body.classList.add('my-turn');
+      document.body.classList.remove('opponent-turn');
+      status.textContent = "Your Turn!";
+    } else {
+      document.body.classList.add('opponent-turn');
+      document.body.classList.remove('my-turn');
+      status.textContent = "Opponent's Turn...";
+    }
   }
 });

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>Rock Paper Scissors Game</title>
   <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1>ROCK PAPER SCISSORS GAME</h1>
@@ -12,5 +15,14 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="../js/rps.js"></script>
+  <div id="endGameModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalResultText"></h2>
+      <p id="modalInfoText">Thanks for playing!</p>
+      <div class="modal-buttons">
+          <button id="backToHomeButton">Back to Home</button>
+          </div>
+    </div>
+  </div>
 </body>
 </html>

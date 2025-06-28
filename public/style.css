@@ -1,149 +1,306 @@
 #game-board {
-  display: grid;
-  grid-template-columns: repeat(4, 80px);
-  grid-gap: 10px;
-  justify-content: center;
+    display: grid;
+    /* הגדרת גודל רספונסיבי למשבצות, 4 עמודות */
+    grid-template-columns: repeat(4, clamp(80px, 15vw, 120px));
+    grid-template-rows: repeat(4, clamp(80px, 15vw, 120px));
+    gap: 15px; /* רווח בין הקלפים */
+    justify-content: center;
+    margin-top: 20px;
+    perspective: 1000px;
 }
 
-.card {
-  background-color: #eee;
-  font-size: 2rem;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-body {
-    font-family: Arial, sans-serif;
+/* --- עיצוב קלף זיכרון בודד --- */
+/* שימוש בסלקטור ספציפי כדי לא להתנגש עם קלפים ממשחקים אחרים */
+#game-board .card {
+    background: linear-gradient(145deg, #2a2a4e, #30305a); /* רקע מעט שונה להבחנה */
+    border-radius: 15px; /* פינות מעוגלות */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(2.5rem, 8vw, 4rem); /* גודל אמוג'י רספונסיבי */
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    transform-style: preserve-3d; /* מאפשר אפקט היפוך תלת-ממדי */
+    border: 2px solid #4a4a6e;
+}
+
+/* --- אפקט ריחוף על קלפים שעדיין לא נחשפו --- */
+#game-board .card:not(.matched):hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3), 0 0 15px #e0b0ff;
+}
+
+/* --- עיצוב קלפים שנמצאה להם התאמה --- */
+#game-board .card.matched {
+    background: #2a2a4e; /* צבע רקע אחיד וכהה יותר */
+    opacity: 0.5; /* הופך את הקלף לשקוף למחצה */
+    cursor: default; /* משנה את סמן העכבר כדי לסמן שהקלף לא לחיץ */
+    transform: scale(0.95); /* מקטין מעט את הקלף */
+    box-shadow: none; /* מסיר את הצל */
+    border-color: #5a5a7e;
+}
+
+/* --- הגדרות כלליות וגוף הדף --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    padding: 20px;
+    background-color: #1a1a2e; /* רקע כהה ואחיד */
+    color: #e0e0e0;
     text-align: center;
+    box-sizing: border-box;
 }
 
-.container {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 400px;
-}
+/* --- הסרת העיצוב של הקונטיינר הלבן --- */
+/* .container { ... } נמחק */
 
+/* --- טיפוגרפיה וכותרות --- */
 h1 {
-    color: #333;
+    color: #ffffff;
+    font-size: clamp(2rem, 5vw, 3rem); /* גודל פונט רספונסיבי */
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+    color: #e0e0e0;
+    font-weight: 600;
+    margin-top: 40px;
     margin-bottom: 20px;
 }
 
 p {
-    color: #666;
-    margin-bottom: 25px;
+    color: #b0b0d0; /* צבע טקסט משני, בהיר וקריא */
+    margin-bottom: 30px;
+    max-width: 500px;
 }
 
+/* --- עיצוב טופס הכניסה --- */
 #nameForm {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
-#playerName {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+#playerNameInput {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #3a3a5e;
+    border-radius: 10px;
+    background-color: #1e1e3b;
+    color: #ffffff;
     font-size: 16px;
+    transition: all 0.3s ease;
 }
 
-#playerName:focus {
+#playerNameInput::placeholder {
+    color: #8a8a9e;
+}
+
+#playerNameInput:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    border-color: #9d4edd; /* צבע הדגשה סגול */
+    box-shadow: 0 0 10px #9d4edd;
 }
 
-button[type="submit"] {
-    background-color: #007bff;
-    color: white;
-    padding: 12px 20px;
+/* --- עיצוב כפתורים כללי --- */
+button, .button-style {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 15px 30px;
     border: none;
-    border-radius: 5px;
-    font-size: 18px;
+    border-radius: 50px; /* כפתורי גלולה */
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
+button:hover, .button-style:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* --- כפתור שליחה ראשי --- */
+button[type="submit"] {
+    background-color: #3a86ff; /* כחול */
+    color: white;
+    box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4);
+}
 button[type="submit"]:hover {
-    background-color: #0056b3;
+    background-color: #4f94ff;
+}
+
+/* --- מסך בחירת משחק --- */
+#gameSelectionScreen h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    margin-bottom: 10px;
+}
+
+.game-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.game-item {
+    background: linear-gradient(145deg, #1e1e3b, #242445);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #3a3a5e;
+}
+
+.game-item:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.game-item h3 {
+    color: #ffffff;
+    font-size: 1.75rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.game-item p {
+    font-size: 0.9em;
+    margin-bottom: 25px;
+    min-height: 40px; /* גובה מינימלי לשמירה על אחידות */
+}
+
+.game-item .play-game-button {
+    background-color: #00b377; /* ירוק מנטה */
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 179, 119, 0.3);
+    width: 100%; /* רוחב מלא של הכרטיס */
+}
+
+.game-item .play-game-button:hover {
+    background-color: #00cc88;
+}
+
+#changeNameButton {
+    background-color: transparent;
+    color: #b0b0d0;
+    margin-top: 40px;
+    border: 2px solid #5a5a7e;
+    box-shadow: none;
+}
+
+#changeNameButton:hover {
+    background-color: #5a5a7e;
+    color: white;
+    box-shadow: 0 5px 15px rgba(90, 90, 126, 0.2);
 }
 
 .modal {
-    display: none; /* וודא שזה מוסתר לחלוטין כברירת מחדל */
-    position: fixed;
-    z-index: 1000;
+    display: none; /* מוסתר כברירת מחדל */
+    position: fixed; /* נשאר במקום קבוע, גם בגלילה */
+    z-index: 2000; /* ודא שהוא מעל כל שאר האלמנטים */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.7);
-    /* הסר את display: flex; מכאן - הוא יתווסף דינמית ב-JS */
+    background-color: rgba(12, 12, 32, 0.8); /* רקע שחור-כחלחל שקוף למחצה */
+    backdrop-filter: blur(5px); /* אפקט טשטוש "פרוסטי" על הרקע */
     justify-content: center;
     align-items: center;
 }
 
+/* קלאס שנוסיף עם JS כדי להציג את המודאל */
 .modal.show {
-    display: flex; /* הצג את המודאל רק כשהקלאס 'show' קיים */
+    display: flex;
 }
 
+/* --- עיצוב תיבת התוכן של המודאל --- */
 .modal-content {
-    background-color: #fefefe;
-    margin: auto;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    width: 80%;
-    max-width: 400px;
+    /* עיצוב כהה ומודרני תואם לשאר האתר */
+    background: linear-gradient(145deg, #242445, #1e1e3b);
+    padding: 30px 40px;
+    border-radius: 20px;
+    border: 1px solid #4a4a6e;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 450px;
     text-align: center;
-    transform: translateY(-50px);
+
+    /* אנימציית כניסה */
+    transform: scale(0.9);
     opacity: 0;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    animation: zoomIn 0.3s ease-out forwards;
 }
 
-.modal.show .modal-content {
-    transform: translateY(0);
-    opacity: 1;
+/* --- אנימציית כניסה --- */
+@keyframes zoomIn {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-.modal h2 {
-    color: #333;
+
+/* --- עיצוב הטקסטים בתוך המודאל --- */
+.modal-content h2 {
+    color: #ffffff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 0;
     margin-bottom: 15px;
-    font-size: 2em;
 }
 
-.modal p {
-    color: #555;
-    font-size: 1.2em;
-    margin-bottom: 25px;
+.modal-content p {
+    color: #b0b0d0;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
 }
 
-.modal button {
-    background-color: #007bff;
+/* --- עיצוב הכפתורים במודאל --- */
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-content button {
+    background-color: #3a86ff; /* כחול ראשי */
     color: white;
-    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 30px;
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
+    border-radius: 50px;
     cursor: pointer;
-    margin: 5px;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(58, 134, 255, 0.3);
 }
 
-.modal button:hover {
-    background-color: #0056b3;
+.modal-content button:hover {
+    background-color: #4f94ff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(58, 134, 255, 0.4);
 }
 
 #backToHomeButton {
@@ -154,134 +311,107 @@ button[type="submit"]:hover {
     background-color: #5a6268;
 }
 
-.game-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* יציג כרטיסים בגודל אחיד */
-    gap: 20px;
-    margin-top: 30px;
-    justify-content: center;
-}
-
-.game-item {
-    background-color: #e9ecef;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.game-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-}
-
-.game-item h3 {
-    color: #007bff;
-    margin-bottom: 10px;
-    font-size: 1.5em;
-}
-
-.game-item p {
-    color: #666;
-    font-size: 0.9em;
-    margin-bottom: 20px;
-}
-
-.game-item .play-game-button {
-    background-color: #28a745; /* צבע ירוק לכפתור Play */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    width: 100%; /* כפתור ברוחב מלא של הכרטיס */
-}
-
-.game-item .play-game-button:hover {
-    background-color: #218838;
-}
-
-#changeNameButton {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    margin-top: 30px;
-    transition: background-color 0.2s ease-in-out;
-}
-
-#changeNameButton:hover {
-    background-color: #5a6268;
-}
-
+/* --- עיצוב כללי של רשימת הסשנים --- */
 .session-list {
-    margin-top: 20px;
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px; /* הגדלת הרווח בין הפריטים */
+    width: 100%;
+    max-width: 800px; /* רוחב מירבי לרשימה */
 }
 
+/* --- עיצוב פריט סשן בודד --- */
 .session-item {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px 20px;
-    text-align: left;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* רקע גרדיאנט כהה, כמו שאר האלמנטים */
+    background: linear-gradient(145deg, #1e1e3b, #242445);
+    border: 1px solid #3a3a5e;
+    border-radius: 15px; /* פינות מעוגלות יותר */
+    padding: 20px 25px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
+/* אפקט ריחוף עדין על כל שורת הסשן */
+.session-item:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 22px rgba(0,0,0,0.3);
+    border-color: #5a5a7e;
+}
+
+/* --- עיצוב הטקסטים בתוך פריט הסשן --- */
 .session-item h3 {
     margin: 0;
-    color: #007bff;
-    font-size: 1.2em;
+    color: #ffffff; /* טקסט לבן */
+    font-size: 1.5rem; /* הגדלת הפונט */
+    font-weight: 600;
 }
 
 .session-item p {
-    margin: 5px 0;
-    color: #495057;
-    font-size: 0.9em;
+    margin: 5px 0 0;
+    color: #b0b0d0; /* צבע טקסט משני ובהיר */
+    font-size: 0.9rem;
 }
 
 .session-item .join-session-button {
-    background-color: #007bff;
+    /* צבע ירוק מודרני שמסמל פעולת "כניסה" */
+    background-color: #00b377;
     color: white;
-    padding: 8px 15px;
+
+    /* צורת גלולה וריווח פנימי נדיב */
+    padding: 12px 28px;
     border: none;
-    border-radius: 5px;
-    font-size: 0.9em;
+    border-radius: 50px;
+
+    /* מונע מהכפתור להתכווץ ומוסיף רווח מהטקסט */
+    flex-shrink: 0;
+    margin-left: 20px;
+
+    /* טיפוגרפיה מודרנית */
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* אפקטים וצל */
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 179, 119, 0.3);
 }
 
 .session-item .join-session-button:hover {
-    background-color: #0056b3;
+    background-color: #00d188; /* צבע בהיר יותר בריחוף */
+    transform: scale(1.05); /* אפקט "פופ" בריחוף */
+    box-shadow: 0 6px 20px rgba(0, 179, 119, 0.4);
 }
 
+
+/* --- עיצוב כפתורים נוספים בעמוד להתאמה --- */
 #createSessionButton {
-    background-color: #28a745; /* Green */
-    margin-top: 25px;
+    background-color: #3a86ff; /* כחול ראשי */
+    box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4);
+    margin-top: 30px;
 }
 
 #createSessionButton:hover {
-    background-color: #218838;
+    background-color: #4f94ff;
 }
 
 #backToGameSelectionButton {
-    background-color: #6c757d; /* Grey */
-    margin-top: 10px;
+    background-color: transparent;
+    color: #b0b0d0;
+    border: 2px solid #5a5a7e;
+    box-shadow: none;
+    margin-top: 15px;
 }
 
 #backToGameSelectionButton:hover {
-    background-color: #5a6268;
+    background-color: #5a5a7e;
+    color: white;
 }
 
 /* Add a style for matched cards in memory game (optional) */
@@ -291,65 +421,145 @@ button[type="submit"]:hover {
 
 #rps-board {
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(3, 150px);;
-    grid-gap: 25px;
-    margin-left: auto;
-    margin-right: 0;
+    grid-template-columns: repeat(3, 1fr); /* 3 עמודות שוות ברוחבן */
+    gap: 30px; /* רווח גדול ומודרני יותר בין הקלפים */
+    justify-content: center;
+    perspective: 1000px; /* מוסיף פרספקטיבה לאנימציות תלת-ממדיות */
 }
 
 .card_rps {
-  background-color: #eee;
-  font-size: 6rem;
-  width: 250px;
-  height: 250px;
+  background: linear-gradient(145deg, #1e1e3b, #242445); /* רקע גרדיאנט עדין */
+  color: #ffffff;
+  font-size: 5rem;
+  width: 180px;  /* גודל אחיד ומודרני */
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-radius: 20px; /* פינות מעוגלות יותר */
+  border: 2px solid transparent; /* מסגרת שקופה שתופיע בבחירה */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease-in-out; /* אנימציה חלקה לכל השינויים */
+}
+
+/* אפקט ריחוף (hover) על הקלפים */
+.card_rps:hover {
+    transform: translateY(-10px) scale(1.05); /* הרמת הקלף והגדלתו */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 20px #e0b0ff; /* צל מודגש יותר וזוהר בצבע סגול */
+}
+
+/* עיצוב הקלף שנבחר - מתאים לצבע שהקוד ב-JS מגדיר */
+.card_rps[style*="background-color: rgb(142, 140, 140)"] { /* Selector to catch the inline style from JS */
+    background-color: #9d4edd !important; /* שימוש בצבע מודרני ובולט */
+    transform: translateY(-5px) scale(1.02);
+    border: 2px solid #ffffff; /* מסגרת לבנה להדגשת הבחירה */
+    box-shadow: 0 0 25px #9d4edd; /* אפקט זוהר בצבע הבחירה */
 }
 
 #ready-button {
-    /* מיקום הכפתור בתחתית ובמרכז */
-    position: absolute; /* מיקום אבסולוטי ביחס לאבא עם position: relative (ה-body במקרה זה) */
-    bottom: 20px; /* 20 פיקסלים מהתחתית */
-    left: 50%; /* 50% משמאל */
-    transform: translateX(-50%); /* מזיז את הכפתור חזרה בחצי מרוחבו למרכוז מדויק */
-    z-index: 1000; /* ודא שהכפתור נמצא מעל אלמנטים אחרים */
-
-    /* עיצוב ויזואלי */
-    padding: 15px 30px; /* ריפוד פנימי */
-    font-size: 20px; /* גודל טקסט */
-    font-weight: bold; /* עובי טקסט */
-    color: white; /* צבע טקסט לבן */
-    background-color: #4CAF50; /* ירוק יפה */
-    border: none; /* ללא מסגרת */
-    border-radius: 8px; /* פינות מעוגלות */
-    cursor: pointer; /* סמן עכבר כ-pointer בלחיצה */
-    transition: background-color 0.3s ease, transform 0.3s ease; /* אנימציה חלקה למעבר צבע ושינוי גודל */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* צל עדין */
+    position: fixed; /* שינוי ל-fixed כדי שהכפתור יישאר במקום בגלילה */
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 15px 35px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    background-color: #3a86ff; /* כחול מודרני */
+    border: none;
+    border-radius: 50px; /* כפתור בצורת גלולה */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4);
 }
 
-/* אפקט ריחוף (Hover effect) */
 #ready-button:hover:not(:disabled) {
-    background-color: #45a049; /* ירוק כהה יותר בריחוף */
-    transform: translateX(-50%) scale(1.05); /* הגדלה קלה בריחוף */
+    background-color: #4390ff;
+    transform: translateX(-50%) scale(1.1); /* הגדלה משמעותית יותר */
+    box-shadow: 0 8px 25px rgba(58, 134, 255, 0.6);
 }
 
-/* עיצוב כפתור במצב לא פעיל (disabled) */
+/* עיצוב הכפתור במצב לא פעיל (כשהשחקן לחץ "מוכן") */
 #ready-button:disabled {
-    background-color: gray !important; /* צבע אפור קבוע למצב לא פעיל */
-    cursor: not-allowed !important; /* סמן עכבר "לא מורשה" */
-    transform: translateX(-50%) scale(1); /* ביטול הגדלה במצב לא פעיל */
-    opacity: 0.7; /* עמעום קל */
-    box-shadow: none; /* הסרת צל */
+    background-color: #5a5a5a !important; /* צבע אפור כהה */
+    color: #999;
+    cursor: not-allowed !important;
+    transform: translateX(-50%) scale(1);
+    box-shadow: none;
 }
 
+#status {
+    font-size: 1.5rem;
+    font-weight: 600;
+    min-height: 2.5rem; /* שומר על גובה אחיד כדי למנוע קפיצות */
+    color: #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+/* --- עיצוב חיווי התור בגוף הדף --- */
+/* כשהתור שלי, הכותרת הראשית זוהרת בצבע ירוק */
+body.my-turn h1 {
+    color: #00ffab;
+    text-shadow: 0 0 15px #00ffab;
+}
+body.my-turn #status {
+    color: #00ffab;
+}
+
+/* כשהתור של היריב, הכותרת זוהרת בכתום */
+body.opponent-turn h1 {
+    color: #ff8c42;
+    text-shadow: 0 0 15px #ff8c42;
+}
+body.opponent-turn #status {
+    color: #ff8c42;
+}
+
+
+/* --- עיצוב לוח המשחק "איקס עיגול" --- */
 #xo-board {
     display: grid;
-    grid-template-columns: repeat(3, 150px);
-    grid-template-rows: repeat(3, 150px);
-    grid-gap: 25px;
-    margin-left: auto;
-    margin-right: 0;
+    /* הגדרת גודל המשבצות, מאפשר גודל דינמי */
+    grid-template-columns: repeat(3, clamp(100px, 15vw, 140px));
+    grid-template-rows: repeat(3, clamp(100px, 15vw, 140px));
+    gap: 15px;
+    margin-top: 20px;
+    perspective: 1000px;
+}
+
+/* --- עיצוב משבצת בודדת (xo-card) --- */
+.xo-card {
+    background: linear-gradient(145deg, #1e1e3b, #242445);
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(3rem, 10vw, 5rem); /* גודל פונט רספונסיבי ל-X ול-O */
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+/* --- עיצוב המשבצת במעבר עכבר (hover) --- */
+.xo-card:not(.player-x):not(.player-o):hover {
+    transform: scale(1.05);
+    border-color: #9d4edd;
+    box-shadow: 0 0 20px #9d4edd;
+}
+
+/* --- עיצוב צבעים שונים ל-X ול-O --- */
+.xo-card.player-x {
+    color: #3a86ff; /* כחול מודרני */
+    text-shadow: 0 0 10px rgba(58, 134, 255, 0.7);
+}
+
+.xo-card.player-o {
+    color: #ffbe0b; /* צהוב-כתום מודרני */
+    text-shadow: 0 0 10px rgba(255, 190, 11, 0.7);
 }
