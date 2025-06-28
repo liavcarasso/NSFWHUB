@@ -49,6 +49,7 @@ io.on('connection', socket => {
                 turn: null,
                 matched: [],
                 flipped: [],
+                score: {},
                 maxPlayers: 2,
                 status: 'waiting',
                 readyPlayers: new Set()
@@ -105,6 +106,8 @@ io.on('connection', socket => {
             session.status = 'in_progress';
             if (session.gameType === "memory"){
                 session.turn = Object.keys(session.players)[0];
+                session.score[Object.keys(session.players)[0]] = 0;
+                session.score[Object.keys(session.players)[1]] = 0;
             }
             if (session.gameType === "xo"){
                 session.roles = randomRolesXo(session.players);
@@ -138,12 +141,13 @@ io.on('connection', socket => {
             const e2 = session.board[i2];
 
             if (e1 === e2) {
+                session.score[socket.id] += 1;
                 turn = false;
                 session.matched.push(i1, i2);
                 io.to(sessionId).emit('match', [i1, i2]);
 
                 if (session.matched.length === session.board.length) {
-                    io.to(sessionId).emit('endmemory', { winnerId: socket.id });
+                    io.to(sessionId).emit('endmemory', { winnerId: Object.entries(session.score).reduce((a, b) => a[1] > b[1] ? a : b)[0]});
                     return;
                 }
             }
