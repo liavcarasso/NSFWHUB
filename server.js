@@ -147,8 +147,20 @@ io.on('connection', socket => {
                 io.to(sessionId).emit('match', [i1, i2]);
 
                 if (session.matched.length === session.board.length) {
-                    io.to(sessionId).emit('endmemory', { winnerId: Object.entries(session.score).reduce((a, b) => a[1] > b[1] ? a : b)[0]});
-                    return;
+
+                    let players = Object.keys(session.players);
+                    if (session.score[players[0]] === session.score[players[1]]){
+                        io.to(sessionId).emit('endmemory', { winnerId: null});
+                        return;
+                    }
+                    else if (session.score[players[0]] > session.score[players[1]]){
+                        io.to(sessionId).emit('endmemory', { winnerId: players[0]});
+                        return;
+                    }
+                    else {
+                        io.to(sessionId).emit('endmemory', { winnerId: players[1]});
+                        return;
+                    }
                 }
             }
 

@@ -84,9 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
     lockBoard = true;
     let resultMessage = '';
     if (winnerId === socket.id) {
-        resultMessage = '🎉 You Won! 🎉';
+      resultMessage = '🎉 You Won! 🎉';
+    } else if (winnerId === null) {
+      resultMessage = '🤝 It\'s a Tie! 🤝';
     } else {
-        resultMessage = '😢 You Lost 😢';
+      resultMessage = '😢 You Lost 😢';
     }
     modalResultText.textContent = resultMessage;
     modal.classList.add('show');
