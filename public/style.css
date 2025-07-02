@@ -563,3 +563,162 @@ body.opponent-turn #status {
     color: #ffbe0b; /* צהוב-כתום מודרני */
     text-shadow: 0 0 10px rgba(255, 190, 11, 0.7);
 }
+
+#hmex-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 3 עמודות שוות ברוחבן */
+    gap: 30px; /* רווח גדול ומודרני יותר בין הקלפים */
+    justify-content: center;
+    perspective: 1000px; /* מוסיף פרספקטיבה לאנימציות תלת-ממדיות */
+}
+
+#hmword-board {
+    display: flex; /* שינוי ל-flexbox */
+    flex-wrap: wrap;
+    gap: 15px; /* רווח מתאים בין אותיות המילה */
+    justify-content: center;
+    margin-bottom: 50px; /* רווח גדול יותר מהמקלדת למטה */
+    perspective: 1000px;
+}
+
+#hmguess-board {
+    display: flex; /* שינוי מ-grid ל-flex */
+    flex-wrap: wrap; /* מאפשר לאותיות לרדת שורה כשאין מקום */
+    gap: 10px; /* רווח קטן יותר, מתאים למקלדת */
+    justify-content: center; /* ממקם את האותיות במרכז */
+    max-width: 800px; /* מגביל את הרוחב המירבי של המקלדת */
+    margin: 30px auto; /* מוסיף רווח מעל ומתחת */
+    perspective: 1000px;
+}
+
+#hmword-input {
+    display: none;
+    width: 80%;
+    max-width: 500px;
+    margin: 20px auto; /* מרכוז */
+    padding: 15px 20px;
+    font-size: 1.5rem;
+    color: #ffffff;
+    background-color: #2a2a4a;
+    border: 2px solid #444;
+    border-radius: 15px;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#hmword-input:focus {
+    border-color: #9d4edd;
+    box-shadow: 0 0 15px #9d4edd;
+}
+
+/* עדכון הלוח כדי שיתאים למספר משתנה של קלפים */
+#hmhost-board {
+    display: none;
+    opacity: 0;
+    flex-wrap: wrap;
+    gap: 20px; /* רווח בין הקלפים */
+    justify-content: center;
+    perspective: 1000px;
+    padding: 20px;
+}
+
+#hmhost-board.visible {
+    display: flex;
+    opacity: 1;
+}
+
+/* שימוש חוזר בעיצוב הקלפים הקיים, עם התאמות קלות */
+.card_letter {
+  background: linear-gradient(145deg, #1e1e3b, #242445);
+  color: #ffffff;
+  font-size: 4rem; /* פונט גדול יותר לאות בודדת */
+  font-weight: bold;
+  width: 120px;  /* גודל אחיד וקטן יותר */
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  /* נוסיף אנימציה להופעה */
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.card_letter:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 20px #e0b0ff;
+}
+
+/* אנימציית כניסה פשוטה */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#hmguess-board .hm-card {
+    background: linear-gradient(145deg, #1e1e3b, #242445);
+    color: #ffffff;
+    font-size: 1.8rem; /* גודל פונט מתאים לאות */
+    font-weight: 600;
+    width: 60px;  /* גודל אחיד לקלף אות */
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 12px; /* פינות מעוגלות */
+    border: 2px solid #4a4a6e;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+}
+
+/* אפקט ריחוף (hover) על אות שטרם נוסתה */
+#hmguess-board .hm-card:not(.guessed):hover {
+    transform: translateY(-5px) scale(1.05);
+    border-color: #9d4edd;
+    box-shadow: 0 0 20px #9d4edd;
+}
+
+/* עיצוב לאות שכבר נבחרה */
+#hmguess-board .hm-card.guessed {
+    background: #2a2a4e;
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: scale(0.9);
+    border-color: #5a5a7e;
+    box-shadow: none;
+}
+
+#hmword-board .hm-card {
+    background: linear-gradient(145deg, #1e1e3b, #242445);
+    color: #9d4edd; /* צבע סגול בולט לסימן השאלה */
+    font-size: 3.5rem; /* פונט גדול ומרכזי */
+    font-weight: 700;
+    width: 100px;  /* קלף גדול ורחב יותר */
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    border: 2px solid #4a4a6e;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    transition: all 0.4s ease;
+    transform-style: preserve-3d; /* מאפשר אנימציות תלת-ממדיות */
+}
+
+/* עיצוב לאות שנחשפה בהצלחה */
+#hmword-board .hm-card.revealed {
+    background: linear-gradient(145deg, #3a3a5e, #30305a);
+    color: #ffffff; /* צבע לבן לאות שנחשפה */
+    border-color: #00ffab; /* מסגרת ירוקה זוהרת להצלחה */
+    transform: scale(1.05) rotateY(360deg); /* אפקט היפוך תלת-ממדי */
+    box-shadow: 0 0 20px rgba(0, 255, 171, 0.4);
+}

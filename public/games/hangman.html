@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Emoji Memory Game</title>
+  <title>Hangman</title>
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <h1>🧠 Emoji Memory Game</h1>
+  <h1>HANGMAN</h1>
   <p id="status"></p>
-  <div id="game-board" class="game-board"></div>
+  <div id="hmword-board" class="hmword-board"></div>
+  <div id="hmex-board" class="hmex-board"></div>
+  <div id="hmguess-board" class="hmguess-board"></div>
+
+  <input type="text" id="hmword-input" placeholder="התחל להקליד כאן...">
+  <div id="hmhost-board" class="hmhost-board"></div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="../js/memory.js"></script>
+  <script src="../js/hangman.js"></script>
   <div id="endGameModal" class="modal">
     <div class="modal-content">
       <h2 id="modalResultText"></h2>

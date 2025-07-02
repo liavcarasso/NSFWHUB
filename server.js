@@ -51,6 +51,7 @@ io.on('connection', socket => {
                 flipped: [],
                 score: {},
                 maxPlayers: 2,
+                minPlayers: 2,
                 status: 'waiting',
                 readyPlayers: new Set()
             };
@@ -60,12 +61,13 @@ io.on('connection', socket => {
                 gameType,
                 players: {},
                 maxPlayers: 2,
+                minPlayers: 2,
                 choose: {},
                 status: 'waiting',
                 readyPlayers: new Set()
             };
         }
-        if (gameType === 'xo') {
+        else if (gameType === 'xo') {
             activeSessions[sessionId] = {
                 gameType,
                 board: [
@@ -76,9 +78,26 @@ io.on('connection', socket => {
                 players: {},
                 turn: null,
                 maxPlayers: 2,
+                minPlayers: 2,
                 status: 'waiting',
                 placed: {},
                 roles: {},
+                readyPlayers: new Set()
+            };
+        }
+        else if (gameType === 'hangman') {
+            activeSessions[sessionId] = {
+                gameType,
+                board: [],
+                latters: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
+                players: {},
+                turn: null,
+                maxPlayers: 4,
+                minPlayers: 2,
+                status: 'waiting',
+                guessed: [],
+                fails: 0,
+                host: "",
                 readyPlayers: new Set()
             };
         }
@@ -102,14 +121,14 @@ io.on('connection', socket => {
         console.log(`Player ${socket.id} is ready in session ${sessionId}. Ready players: ${session.readyPlayers.size}/${session.maxPlayers}`);
 
         // Check if all players are ready
-        if (session.readyPlayers.size === session.maxPlayers && session.status === 'waiting') {
+        if (session.readyPlayers.size === session.minPlayers && session.status === 'waiting') {
             session.status = 'in_progress';
             if (session.gameType === "memory"){
                 session.turn = Object.keys(session.players)[0];
                 session.score[Object.keys(session.players)[0]] = 0;
                 session.score[Object.keys(session.players)[1]] = 0;
             }
-            if (session.gameType === "xo"){
+            else if (session.gameType === "xo"){
                 session.roles = randomRolesXo(session.players);
                 if (session.roles[Object.keys(session.players)[0]] === '❌'){
                     session.turn = Object.keys(session.players)[0];
@@ -117,6 +136,11 @@ io.on('connection', socket => {
                 else {
                     session.turn = Object.keys(session.players)[1];
                 }
+            }
+            else if (session.gameType === "hangman"){
+                session.turn = Object.keys(session.players)[1];
+                session.host = Object.keys(session.players)[0];
+                console.log("the host: " + session.host);
             }
             io.to(sessionId).emit('gameStart', session);
             console.log(`Game started in session ${sessionId}!`);
@@ -276,6 +300,60 @@ io.on('connection', socket => {
                 io.to(sessionId).emit('nextTurn', session.turn);
             }
         }
+    });
+
+    socket.on('hmEnter', (word) => {
+        const sessionId = socket.sessionId;
+        const session = activeSessions[sessionId];
+
+        if (!session) return;
+        word.split('').forEach(char =>{
+            session.board.push(char);
+        })
+        io.to(sessionId).emit('gameStartHm', session);
+    });
+
+    socket.on('hmGuessClick', (index) => {
+        const sessionId = socket.sessionId;
+        const session = activeSessions[sessionId];
+
+        if (!session) return;
+        let winnerFound = false;
+        let latter = session.latters[index];
+        if (session.board.includes(latter)) {
+            const indexes = [];
+            session.board.forEach((char, idx) => {
+                if (char === latter) {
+                    session.guessed.push(char);
+                    indexes.push(idx);
+                }
+            });
+            io.to(sessionId).emit('guessHm', indexes, true);
+        }
+        else{
+            session.fails += 1;
+            io.to(sessionId).emit('guessHm', [], false);
+        }
+        if (session.fails >= 5){
+            console.log(session.host);
+            io.to(sessionId).emit('endHm', session.host);
+            winnerFound = true;
+        }
+        if (session.board.every(char => session.guessed.includes(char))) {
+            io.to(sessionId).emit('endHm', "!host");
+            winnerFound = true;
+        }
+        if (!winnerFound) {
+            const ids = Object.keys(session.players);
+            const current = ids.indexOf(session.turn);
+            session.turn = ids[(current + 1) % ids.length];
+            if(session.turn === session.host){
+                const current = ids.indexOf(session.turn);
+                session.turn = ids[(current + 1) % ids.length];
+            }
+            io.to(sessionId).emit('nextTurn', session.turn);
+        }
+
     });
 
     socket.on('disconnect', () => {
