@@ -328,11 +328,12 @@ io.on('connection', socket => {
                     indexes.push(idx);
                 }
             });
-            io.to(sessionId).emit('guessHm', indexes, true);
+            io.to(sessionId).emit('guessHm', indexes, true, session.guessed);
         }
         else{
+            session.guessed.push(latter)
             session.fails += 1;
-            io.to(sessionId).emit('guessHm', [], false);
+            io.to(sessionId).emit('guessHm', [], false, session.guessed);
         }
         if (session.fails >= 5){
             console.log(session.host);

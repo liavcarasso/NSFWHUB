@@ -71,7 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    socket.on('guessHm', (indexes , isTrue) => {
+    socket.on('guessHm', (indexes , isTrue, guessedLetters) => {
+        const allLetterCards = Array.from(guessBoard.children);
+
+        guessedLetters.forEach(letter => {
+            const targetCard = allLetterCards.find(card => card.dataset.word === letter);
+            if (targetCard) {
+
+                const guessIndex = parseInt(targetCard.dataset.index, 10);
+                if (!guessed.includes(guessIndex)) {
+                    guessed.push(guessIndex);
+                    targetCard.classList.add('guessed');
+                }
+            }
+        });
+
         if (isTrue) {
             indexes.forEach((index) => {
                 const card = wordBoard.children[index];
@@ -91,8 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     socket.on('nextTurn', turnId => {
-        myTurn = (turnId === socket.id);
-        highlightTurn(myTurn);
+        if (!host){
+            myTurn = (turnId === socket.id);
+            highlightTurn(myTurn);
+        }
     });
 
     socket.on('endHm', (winner) => {
@@ -176,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.addEventListener('click', () => {
             if (!myTurn || lockBoard || guessed.includes(index)) return;
+                guessed.push(word);
                 card.classList.add('guessed');
                 socket.emit('hmGuessClick', index);
             });
