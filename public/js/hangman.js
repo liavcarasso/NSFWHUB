@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             document.body.classList.add('opponent-turn');
             document.body.classList.remove('my-turn');
-            status.textContent = "Opponent's Turn...";
+            status.textContent = "Other Player's Turn...";
         }
     }
 });

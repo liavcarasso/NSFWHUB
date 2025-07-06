@@ -121,7 +121,7 @@ io.on('connection', socket => {
         console.log(`Player ${socket.id} is ready in session ${sessionId}. Ready players: ${session.readyPlayers.size}/${session.maxPlayers}`);
 
         // Check if all players are ready
-        if (session.readyPlayers.size === session.minPlayers && session.status === 'waiting') {
+        if (session.readyPlayers.size >= session.minPlayers && session.status === 'waiting') {
             session.status = 'in_progress';
             if (session.gameType === "memory"){
                 session.turn = Object.keys(session.players)[0];
